@@ -156,12 +156,7 @@ def create_app(cfg: Settings):
 
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=[
-            "localhost",
-            "127.0.0.1",
-            "[::1]",
-            "testserver",
-        ],
+        allowed_hosts=["*"],
     )
 
     store = Store(cfg)
