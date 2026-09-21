@@ -1,0 +1,4 @@
+# Copia este archivo como Modelfile y cambia la ruta por tu archivo GGUF real.
+FROM C:/Modelos/mi-modelo.gguf
+PARAMETER temperature 0
+PARAMETER num_ctx 16384

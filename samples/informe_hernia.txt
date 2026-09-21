@@ -1,0 +1,11 @@
+Paciente: Ana Ejemplo
+ID del paciente: PAC-001
+Número de póliza: POL-001
+
+Diagnóstico:
+Hernia inguinal.
+
+Procedimiento solicitado:
+Reparación de hernia inguinal.
+
+Se recomienda realizar el procedimiento quirúrgico.

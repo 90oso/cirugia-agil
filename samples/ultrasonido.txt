@@ -1,0 +1,14 @@
+INFORME DE ULTRASONIDO
+
+Paciente: Ana Ejemplo
+ID del paciente: PAC-001
+Número de póliza: POL-001
+
+Estudio:
+Ultrasonido de región inguinal.
+
+Hallazgo:
+Hallazgos compatibles con hernia inguinal.
+
+Documento correspondiente al estudio solicitado
+como requisito previo al procedimiento quirúrgico.

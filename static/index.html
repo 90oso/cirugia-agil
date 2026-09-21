@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Cirugía Ágil · Preautorización quirúrgica</title>
+
+  <meta
+    name="description"
+    content="Agente de preautorización quirúrgica asistido por inteligencia artificial."
+  >
+
+  <link
+    rel="icon"
+    href="/static/favicon.svg"
+    type="image/svg+xml"
+  >
+
+  <link
+    rel="stylesheet"
+    href="/static/styles.css"
+  >
+
+  <script
+    src="/static/app.js"
+    defer
+  ></script>
+</head>
+
+<body>
+
+  <!-- =======================================================
+       TOPBAR
+       ======================================================= -->
+
+  <header class="topbar">
+
+    <div class="topbar-inner">
+
+      <a
+        class="brand"
+        href="/"
+        aria-label="Cirugía Ágil"
+      >
+        <span
+          class="brand-symbol"
+          aria-hidden="true"
+        >
+          +
+        </span>
+
+        <span class="brand-copy">
+          <strong>Cirugía Ágil</strong>
+          <small>Preautorización inteligente</small>
+        </span>
+      </a>
+
+      <nav
+        class="primary-nav"
+        aria-label="Navegación principal"
+      >
+        <button
+          id="new-tab"
+          class="nav-btn active"
+          type="button"
+          aria-current="page"
+        >
+          Nueva solicitud
+        </button>
+
+        <button
+          id="history-tab"
+          class="nav-btn"
+          type="button"
+        >
+          Historial
+        </button>
+      </nav>
+
+      <div
+        id="connection-pill"
+        class="connection-pill checking"
+      >
+        <span class="status-dot"></span>
+        <span id="connection-text">
+          Comprobando sistema
+        </span>
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- =======================================================
+       MAIN
+       ======================================================= -->
+
+  <main>
+
+    <!-- =====================================================
+         HEADING
+         ===================================================== -->
+
+    <section class="hero">
+
+      <div class="hero-copy">
+
+        <div class="hero-kicker">
+          <span class="hero-kicker-dot"></span>
+          AGENTE DE PREAUTORIZACIÓN
+        </div>
+
+        <h1 id="page-title">
+          Evalúa una solicitud quirúrgica
+          <span>en minutos.</span>
+        </h1>
+
+        <p id="page-subtitle">
+          El informe clínico se contrasta con la póliza,
+          coberturas y requisitos registrados en Notion.
+          Gemini interpreta la información y Python verifica
+          las reglas antes de emitir el resultado preliminar.
+        </p>
+
+      </div>
+
+      <div class="hero-flow" aria-label="Flujo del sistema">
+
+        <div class="flow-item">
+          <span class="flow-number">01</span>
+
+          <div>
+            <strong>Notion</strong>
+            <small>Póliza y cobertura</small>
+          </div>
+        </div>
+
+        <span class="flow-arrow" aria-hidden="true">→</span>
+
+        <div class="flow-item">
+          <span class="flow-number">02</span>
+
+          <div>
+            <strong>Gemini</strong>
+            <small>Interpretación</small>
+          </div>
+        </div>
+
+        <span class="flow-arrow" aria-hidden="true">→</span>
+
+        <div class="flow-item">
+          <span class="flow-number">03</span>
+
+          <div>
+            <strong>Python</strong>
+            <small>Verificación</small>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         GLOBAL MESSAGE
+         ===================================================== -->
+
+    <div
+      id="global-message"
+      class="notice"
+      role="status"
+      aria-live="polite"
+      hidden
+    ></div>
+
+
+    <!-- =====================================================
+         NEW REQUEST VIEW
+         ===================================================== -->
+
+    <section
+      id="new-view"
+      class="workspace"
+    >
+
+      <!-- ===================================================
+           MAIN COLUMN
+           =================================================== -->
+
+      <div class="main-column">
+
+        <form
+          id="analysis-form"
+          class="request-card"
+        >
+
+          <!-- Model is configured automatically -->
+          <input
+            id="model"
+            name="model"
+            type="hidden"
+            value=""
+          >
+
+
+          <!-- ===============================================
+               STEP 1
+               =============================================== -->
+
+          <section class="form-section">
+
+            <div class="section-header">
+
+              <div class="section-index">
+                01
+              </div>
+
+              <div>
+                <p class="section-eyebrow">
+                  DATOS DE LA SOLICITUD
+                </p>
+
+                <h2>
+                  Identifica la póliza
+                </h2>
+
+                <p>
+                  La información del asegurado y sus coberturas
+                  se obtiene automáticamente desde Notion.
+                </p>
+              </div>
+
+            </div>
+
+
+            <div class="request-fields">
+
+              <div class="field">
+
+                <label for="policy-number">
+                  Número de póliza
+                </label>
+
+                <div class="input-shell">
+                  <span
+                    class="input-prefix"
+                    aria-hidden="true"
+                  >
+                    #
+                  </span>
+
+                  <input
+                    type="text"
+                    id="policy-number"
+                    name="policy_number"
+                    value="POL-001"
+                    autocomplete="off"
+                    placeholder="Ej. POL-001"
+                    required
+                  >
+                </div>
+
+              </div>
+
+
+              <div class="field">
+
+                <label for="surgery-date">
+                  Fecha prevista de cirugía
+                </label>
+
+                <input
+                  type="date"
+                  id="surgery-date"
+                  name="surgery_date"
+                  required
+                >
+
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <div class="section-separator"></div>
+
+
+          <!-- ===============================================
+               STEP 2
+               =============================================== -->
+
+          <section class="form-section">
+
+            <div class="section-header">
+
+              <div class="section-index">
+                02
+              </div>
+
+              <div>
+                <p class="section-eyebrow">
+                  DOCUMENTACIÓN CLÍNICA
+                </p>
+
+                <h2>
+                  Adjunta el informe médico
+                </h2>
+
+                <p>
+                  Puedes utilizar PDF, TXT o MD.
+                  Cada archivo puede ocupar hasta 5 MB.
+                </p>
+              </div>
+
+            </div>
+
+
+            <label
+              id="report-drop"
+              class="report-drop"
+              for="report"
+            >
+
+              <input
+                type="file"
+                id="report"
+                name="report"
+                accept=".pdf,.txt,.md"
+                required
+              >
+
+              <span
+                class="upload-symbol"
+                aria-hidden="true"
+              >
+                ↑
+              </span>
+
+              <div class="upload-copy">
+
+                <strong id="report-name">
+                  Seleccionar informe médico
+                </strong>
+
+                <span>
+                  Haz clic o arrastra el documento aquí
+                </span>
+
+              </div>
+
+              <span class="upload-format">
+                PDF · TXT · MD
+              </span>
+
+            </label>
+
+          </section>
+
+
+          <div class="section-separator"></div>
+
+
+          <!-- ===============================================
+               STEP 3
+               =============================================== -->
+
+          <section class="form-section">
+
+            <div class="section-header compact">
+
+              <div class="section-index">
+                03
+              </div>
+
+              <div>
+                <p class="section-eyebrow">
+                  DOCUMENTOS ADICIONALES
+                </p>
+
+                <h2>
+                  Adjunta requisitos complementarios
+                </h2>
+
+                <p>
+                  Puedes agregar hasta tres documentos,
+                  por ejemplo una orden quirúrgica,
+                  estudios o resultados diagnósticos.
+                </p>
+              </div>
+
+            </div>
+
+
+            <label
+              class="attachments-control"
+              for="attachments"
+            >
+
+              <span class="attachments-plus">
+                +
+              </span>
+
+              <span>
+                <strong>
+                  Añadir documentos
+                </strong>
+
+                <small>
+                  Hasta 3 archivos adicionales
+                </small>
+              </span>
+
+              <input
+                type="file"
+                id="attachments"
+                name="attachments"
+                accept=".pdf,.txt,.md"
+                multiple
+              >
+
+            </label>
+
+
+            <div
+              id="attachment-list"
+              class="attachment-list"
+              hidden
+            ></div>
+
+          </section>
+
+
+          <!-- ===============================================
+               SUBMIT
+               =============================================== -->
+
+          <div class="form-submit">
+
+            <div class="privacy-note">
+
+              <span
+                class="privacy-icon"
+                aria-hidden="true"
+              >
+                ◇
+              </span>
+
+              <p>
+                Prototipo académico. Utiliza datos ficticios
+                para demostraciones.
+              </p>
+
+            </div>
+
+
+            <button
+              type="submit"
+              id="analyze-button"
+              class="primary-action"
+            >
+              <span>
+                Analizar solicitud
+              </span>
+
+              <span
+                class="button-arrow"
+                aria-hidden="true"
+              >
+                →
+              </span>
+            </button>
+
+          </div>
+
+
+          <!-- ===============================================
+               PROGRESS
+               =============================================== -->
+
+          <div
+            id="analysis-progress"
+            class="analysis-progress"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+
+            <div
+              class="progress-spinner"
+              aria-hidden="true"
+            ></div>
+
+            <div class="progress-copy">
+
+              <strong>
+                Analizando solicitud
+              </strong>
+
+              <p id="elapsed">
+                Consultando póliza, interpretando documentos
+                y verificando las reglas.
+              </p>
+
+            </div>
+
+            <div class="progress-steps">
+
+              <span class="active">
+                Notion
+              </span>
+
+              <span>
+                Gemini
+              </span>
+
+              <span>
+                Verificación
+              </span>
+
+            </div>
+
+          </div>
+
+        </form>
+
+
+        <!-- ===============================================
+             RESULT
+             =============================================== -->
+
+        <section
+          id="result"
+          class="result-card"
+          hidden
+          aria-labelledby="result-title"
+        ></section>
+
+      </div>
+
+
+      <!-- ===================================================
+           SIDE COLUMN
+           =================================================== -->
+
+      <aside class="side-column">
+
+        <section class="info-card">
+
+          <div class="info-card-heading">
+
+            <span class="mini-kicker">
+              VALIDACIÓN
+            </span>
+
+            <h2>
+              Qué comprueba el agente
+            </h2>
+
+          </div>
+
+
+          <div class="verification-list">
+
+            <div class="verification-item">
+
+              <span class="verification-number">
+                01
+              </span>
+
+              <div>
+                <strong>
+                  Identidad
+                </strong>
+
+                <p>
+                  Confirma que el informe corresponde
+                  al asegurado de la póliza.
+                </p>
+              </div>
+
+            </div>
+
+
+            <div class="verification-item">
+
+              <span class="verification-number">
+                02
+              </span>
+
+              <div>
+                <strong>
+                  Cobertura
+                </strong>
+
+                <p>
+                  Contrasta el procedimiento con
+                  las coberturas del plan.
+                </p>
+              </div>
+
+            </div>
+
+
+            <div class="verification-item">
+
+              <span class="verification-number">
+                03
+              </span>
+
+              <div>
+                <strong>
+                  Vigencia y carencia
+                </strong>
+
+                <p>
+                  Verifica fechas y calcula automáticamente
+                  el período transcurrido.
+                </p>
+              </div>
+
+            </div>
+
+
+            <div class="verification-item">
+
+              <span class="verification-number">
+                04
+              </span>
+
+              <div>
+                <strong>
+                  Documentación
+                </strong>
+
+                <p>
+                  Comprueba los requisitos y señala
+                  exactamente qué documento falta.
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="system-card">
+
+          <div class="system-card-head">
+
+            <div class="system-icon">
+              AI
+            </div>
+
+            <div>
+              <p class="mini-kicker">
+                SISTEMA
+              </p>
+
+              <h2>
+                Motor de decisión
+              </h2>
+            </div>
+
+          </div>
+
+
+          <div class="system-stack">
+
+            <div>
+              <span>
+                Inteligencia artificial
+              </span>
+
+              <strong id="ai-state">
+                Comprobando…
+              </strong>
+            </div>
+
+
+            <div>
+              <span>
+                Fuente aseguradora
+              </span>
+
+              <strong id="notion-state">
+                Comprobando…
+              </strong>
+            </div>
+
+
+            <div>
+              <span>
+                Verificación
+              </span>
+
+              <strong>
+                Motor Python
+              </strong>
+            </div>
+
+          </div>
+
+
+          <p class="system-note">
+            La IA interpreta la información.
+            Las reglas deterministas verifican fechas,
+            evidencias y requisitos antes de emitir
+            el resultado.
+          </p>
+
+        </section>
+
+
+        <section class="disclaimer-card">
+
+          <span
+            class="disclaimer-mark"
+            aria-hidden="true"
+          >
+            i
+          </span>
+
+          <p>
+            La preaprobación generada por este prototipo
+            es preliminar. La autorización definitiva
+            corresponde a la aseguradora.
+          </p>
+
+        </section>
+
+      </aside>
+
+    </section>
+
+
+    <!-- =====================================================
+         HISTORY
+         ===================================================== -->
+
+    <section
+      id="history-view"
+      class="history-card"
+      hidden
+    >
+
+      <div class="history-header">
+
+        <div>
+          <p class="mini-kicker">
+            ACTIVIDAD
+          </p>
+
+          <h2>
+            Solicitudes evaluadas
+          </h2>
+
+          <p>
+            Consulta evaluaciones anteriores y abre
+            nuevamente sus resultados.
+          </p>
+        </div>
+
+
+        <button
+          id="refresh-history"
+          class="secondary-button"
+          type="button"
+        >
+          Actualizar
+        </button>
+
+      </div>
+
+
+      <div
+        id="history-list"
+        class="history-list"
+      ></div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =======================================================
+       FOOTER
+       ======================================================= -->
+
+  <footer>
+
+    <div>
+      <strong>
+        Cirugía Ágil
+      </strong>
+
+      <span>
+        MVP · Preautorización quirúrgica
+      </span>
+    </div>
+
+    <span>
+      Notion · Gemini · FastAPI
+    </span>
+
+  </footer>
+
+</body>
+</html>

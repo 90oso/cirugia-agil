@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: cirugia-agil
+    runtime: python
+
+    buildCommand: pip install -r requirements.txt
+
+    startCommand: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port $PORT
+
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+
+      - key: GEMINI_MODEL
+        value: gemini-3.6-flash
+
+      - key: GEMINI_TIMEOUT_SECONDS
+        value: "120"
+
+      - key: MAX_TEXT_CHARS
+        value: "18000"
+
+      - key: NOTION_TOKEN
+        sync: false
+
+      - key: NOTION_PATIENTS_DATA_SOURCE_ID
+        sync: false
+
+      - key: NOTION_POLICIES_DATA_SOURCE_ID
+        sync: false
+
+      - key: NOTION_COVERAGES_DATA_SOURCE_ID
+        sync: false
+
+      - key: NOTION_REQUESTS_DATA_SOURCE_ID
+        sync: false
+
+      - key: NOTION_DATA_SOURCE_ID
+        sync: false
