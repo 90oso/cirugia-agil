@@ -123,8 +123,8 @@ async function loadSystemStatus() {
       config.ollama_connected
     );
 
-    const notionOnline = Boolean(
-      config.notion_configured
+    const catalogOnline = Boolean(
+      config.catalog_configured ?? config.notion_configured
     );
 
     if (
@@ -141,13 +141,13 @@ async function loadSystemStatus() {
         : 'No disponible';
 
     $('notion-state').textContent =
-      notionOnline
-        ? 'Notion conectado'
-        : 'Sin configurar';
+      catalogOnline
+        ? 'Catálogo listo'
+        : 'Catálogo vacío';
 
     const ready =
       aiOnline &&
-      notionOnline &&
+      catalogOnline &&
       Boolean(config.default_model);
 
     if (ready) {
@@ -251,7 +251,7 @@ function showView(view) {
 
     $('page-subtitle').textContent =
       'El informe clínico se contrasta con la póliza, ' +
-      'coberturas y requisitos registrados en Notion. ' +
+      'coberturas y requisitos registrados en el catálogo. ' +
       'Gemini interpreta la información y Python verifica ' +
       'las reglas antes de emitir el resultado preliminar.';
   }
@@ -634,7 +634,7 @@ $('analysis-form').addEventListener(
 
           $('elapsed').textContent =
             `${seconds} s · ` +
-            'Consultando Notion, analizando documentos ' +
+            'Consultando catálogo, analizando documentos ' +
             'y verificando las reglas.';
         },
         1000
@@ -1663,6 +1663,12 @@ function checkStatusText(status) {
 
 
 function renderNotionStatus(data) {
+  if (data.catalog_backend === 'sqlite') {
+    const box = el('div', null, 'notion-result');
+    box.append(el('strong', 'Expediente conservado en el historial local'));
+    box.append(el('p', 'Registro interno del prototipo. No constituye una autorización final ni almacenamiento seguro para datos clínicos reales.'));
+    return box;
+  }
   const box =
     el(
       'div',
