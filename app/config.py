@@ -56,7 +56,12 @@ class Settings:
     ).resolve()
 
     # -------------------------
-    # Notion
+    # Catálogo: SQLite propio por defecto (Notion solo compatibilidad)
+    # -------------------------
+    catalog_backend: str = os.getenv("CATALOG_BACKEND", "sqlite").lower()
+
+    # -------------------------
+    # Notion (legado opcional)
     # -------------------------
 
     notion_token: str = os.getenv(
