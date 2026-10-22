@@ -2,6 +2,7 @@
 No exponer esta base con datos reales sin autenticación, cifrado, auditoría y revisión legal.
 """
 import asyncio
+from contextlib import contextmanager
 import json
 import os
 import sqlite3
@@ -47,11 +48,16 @@ class SqliteCatalog:
         with self._connection() as conn:
             conn.executescript(SCHEMA)
 
+    @contextmanager
     def _connection(self):
         conn = sqlite3.connect(str(self.path), timeout=15)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys=ON")
-        return conn
+        try:
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys=ON")
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _get_context(self, policy_number):
         with self._connection() as conn:
