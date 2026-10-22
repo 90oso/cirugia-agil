@@ -28,6 +28,7 @@ from .documents import (
     extract_document,
 )
 from .notion import Notion, NotionError
+from .catalog import SqliteCatalog, CatalogError
 from .rules import evaluate
 from .storage import Store
 
@@ -57,7 +58,7 @@ def build_policy_document(context):
     patient = context["patient"]
 
     lines = [
-        "FUENTE: Base de datos Notion de la aseguradora.",
+        "FUENTE: Catálogo estructurado de la aseguradora.",
         f"Número de póliza: {policy['numero_poliza']}",
         f"ID del asegurado: {policy['id_paciente']}",
         f"Nombre del asegurado: {patient['paciente']}",
@@ -109,7 +110,7 @@ def build_policy_document(context):
 
     return Document(
         id="poliza",
-        name="poliza_desde_notion.txt",
+        name="poliza_desde_catalogo.txt",
         content=text.encode("utf-8"),
         pages=[text],
         mime="text/plain",
@@ -160,6 +161,9 @@ def create_app(cfg: Settings):
     )
 
     store = Store(cfg)
+    catalog = SqliteCatalog(cfg) if cfg.catalog_backend == "sqlite" else None
+    if cfg.catalog_backend not in ("sqlite", "notion"):
+        raise ValueError("CATALOG_BACKEND debe ser sqlite o notion")
 
     ai_lock = asyncio.Lock()
     notion_lock = asyncio.Lock()
@@ -316,6 +320,10 @@ def create_app(cfg: Settings):
             status_code=502,
         )
 
+    @app.exception_handler(CatalogError)
+    async def catalog_error(request, exc):
+        return JSONResponse({"detail": str(exc)}, status_code=422)
+
     # ========================================================
     # HEALTH
     # ========================================================
@@ -358,8 +366,15 @@ def create_app(cfg: Settings):
             "default_model":
                 cfg.model,
 
-            "notion_configured":
-                cfg.notion_catalog_ready,
+            "catalog_backend": cfg.catalog_backend,
+            "catalog_configured": (
+                catalog.count_policies() > 0
+                if catalog is not None
+                else cfg.notion_catalog_ready
+            ),
+            "notion_configured": (
+                cfg.notion_catalog_ready if catalog is None else False
+            ),
 
             "max_file_mb":
                 (
@@ -460,18 +475,11 @@ def create_app(cfg: Settings):
         started = time.monotonic()
 
         # ----------------------------------------------------
-        # 2. Consultar Notion
+        # 2. Consultar catálogo propio (o adaptador legado)
         # ----------------------------------------------------
 
-        notion = Notion(
-            cfg
-        )
-
-        context = (
-            await notion.get_case_context(
-                policy_number
-            )
-        )
+        provider = catalog if catalog is not None else Notion(cfg)
+        context = await provider.get_case_context(policy_number)
 
         # ----------------------------------------------------
         # 3. Verificar asociación paciente-póliza
@@ -500,7 +508,7 @@ def create_app(cfg: Settings):
                 status_code=409,
                 detail=(
                     "El paciente y la póliza "
-                    "de Notion no corresponden "
+                    "del catálogo no corresponden "
                     "al mismo ID."
                 ),
             )
@@ -672,7 +680,7 @@ def create_app(cfg: Settings):
             policy_number=
                 policy_number,
 
-            notion_context=
+            catalog_context=
                 context,
         )
 
@@ -689,46 +697,25 @@ def create_app(cfg: Settings):
         )
 
         # ----------------------------------------------------
-        # 10. Guardar automáticamente en Notion
+        # 10. Catálogo propio: los expedientes quedan en Store.
+        #     Integración Notion solo si el operador la seleccionó.
         # ----------------------------------------------------
 
-        try:
-            async with notion_lock:
+        saved["catalog_backend"] = cfg.catalog_backend
+        saved["notion"] = None
+        saved["notion_sync_error"] = None
 
-                notion_result = (
-                    await notion.save_request(
-                        saved
-                    )
-                )
-
-            saved["notion"] = {
-                "page_id":
-                    notion_result.get(
-                        "id"
-                    ),
-
-                "url":
-                    notion_result.get(
-                        "url"
-                    ),
-
-                "complete":
-                    True,
-            }
-
-            saved[
-                "notion_sync_error"
-            ] = None
-
-        except NotionError as exc:
-
-            # El análisis no se pierde si
-            # Notion falla temporalmente.
-            saved["notion"] = None
-
-            saved[
-                "notion_sync_error"
-            ] = str(exc)
+        if catalog is None:
+            try:
+                async with notion_lock:
+                    notion_result = await provider.save_request(saved)
+                saved["notion"] = {
+                    "page_id": notion_result.get("id"),
+                    "url": notion_result.get("url"),
+                    "complete": True,
+                }
+            except NotionError as exc:
+                saved["notion_sync_error"] = str(exc)
 
         store.update(
             saved
@@ -895,6 +882,11 @@ def create_app(cfg: Settings):
     async def sync_notion(
         case_id: str
     ):
+        if catalog is not None:
+            raise HTTPException(
+                status_code=410,
+                detail="Notion no está habilitado: almacenamiento local activo."
+            )
 
         async with notion_lock:
 
