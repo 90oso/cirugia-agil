@@ -1,3 +1,23 @@
+# Cirugía Ágil · versión comercial en preparación
+
+**Persistencia predeterminada:** catálogo SQLite propio, sin dependencia obligatoria de Notion. El proceso original de Notion queda solo como compatibilidad opcional (`CATALOG_BACKEND=notion`).
+
+## Probar la demostración comercial
+
+Abre [docs/index.html](docs/index.html) directamente: es un simulador funcional e independiente del backend, con pólizas ficticias, controles de cobertura, carencia, documentos, historial y exportación. No usa datos médicos reales ni una API externa. Puedes publicarlo en GitHub Pages seleccionando la carpeta `/docs` de la rama principal una vez revisados e integrados los cambios.
+
+## Preparar el catálogo nativo para el backend existente
+
+```bash
+pip install -r requirements.txt
+python -m scripts.seed_catalog
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+El catálogo y los expedientes se almacenan en `data/` local. Para usar el análisis real todavía se necesita configurar el modelo de IA y subir los documentos de prueba. **No publicar este backend para terceros con datos reales:** falta autenticación, control de acceso por organización, cifrado y revisión del tratamiento de información sensible. SQLite es útil para piloto local, no una solución multiempresa lista para producción.
+
+---
+
 # Cirugía Ágil
 
 Agente de preautorización quirúrgica asistido por inteligencia artificial.
